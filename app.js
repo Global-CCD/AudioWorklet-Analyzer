@@ -1,95 +1,109 @@
-// ========== MAIN THREAD (NO AudioWorkletProcessor HERE!) ==========
-let audioContext;
-let audioWorkletNode;
-let isRunning = false;
+// ========== WAIT FOR DOM TO BE READY ==========
+document.addEventListener('DOMContentLoaded', () => {
+  // Now we can safely access DOM elements
+  const startBtn = document.getElementById('startBtn');
+  const stopBtn = document.getElementById('stopBtn');
+  const statusEl = document.getElementById('status');
+  const outputEl = document.getElementById('output');
 
-// DOM Elements
-const startBtn = document.getElementById('startBtn');
-const stopBtn = document.getElementById('stopBtn');
-const statusEl = document.getElementById('status');
-const outputEl = document.getElementById('output');
-
-// ========== INIT AUDIO CONTEXT ==========
-async function initAudio() {
-  if (!window.AudioWorklet) {
-    statusEl.textContent = "ERROR: AudioWorklet not supported in this browser.";
-    return false;
+  if (!startBtn || !stopBtn || !statusEl || !outputEl) {
+    console.error('ERROR: Required DOM elements not found!');
+    return;
   }
 
-  audioContext = new AudioContext();
-  statusEl.textContent = "Loading AudioWorklet module...";
+  let audioContext;
+  let audioWorkletNode;
+  let isRunning = false;
 
-  try {
-    // Load the AudioWorklet processor module
-    await audioContext.audioWorklet.addModule('processor.js');
-    statusEl.textContent = "AudioWorklet ready! Click 'Start'.";
-    statusEl.className = 'success';
-    return true;
-  } catch (err) {
-    statusEl.textContent = `ERROR: Failed to load AudioWorklet: ${err.message}`;
-    return false;
-  }
-}
+  // ========== INIT AUDIO CONTEXT ==========
+  async function initAudio() {
+    if (!window.AudioWorklet) {
+      updateStatus('ERROR: AudioWorklet not supported in this browser.', true);
+      return false;
+    }
 
-// ========== START/STOP AUDIO ==========
-async function startAudio() {
-  if (isRunning) return;
-  isRunning = true;
+    try {
+      audioContext = new AudioContext();
+      updateStatus('Loading AudioWorklet module...');
 
-  startBtn.disabled = true;
-  stopBtn.disabled = false;
-  outputEl.textContent = "Starting audio...";
-
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    const source = audioContext.createMediaStreamSource(stream);
-
-    // Create the AudioWorklet node
-    audioWorkletNode = new AudioWorkletNode(audioContext, 'audio-analyzer-processor', {
-      numberOfInputs: 1,
-      numberOfOutputs: 1,
-      outputChannelCount: [1]
-    });
-
-    // Connect: Mic → AudioWorklet → Speakers (optional)
-    source.connect(audioWorkletNode);
-    audioWorkletNode.connect(audioContext.destination);
-
-    // Handle messages from AudioWorklet
-    audioWorkletNode.port.onmessage = (e) => {
-      outputEl.textContent = JSON.stringify(e.data, null, 2);
-    };
-
-    // Initialize the processor
-    audioWorkletNode.port.postMessage({ type: 'init', sampleRate: audioContext.sampleRate });
-
-  } catch (err) {
-    outputEl.textContent = `ERROR: ${err.message}`;
-    stopAudio();
-  }
-}
-
-function stopAudio() {
-  if (!isRunning) return;
-  isRunning = false;
-
-  startBtn.disabled = false;
-  stopBtn.disabled = true;
-
-  if (audioWorkletNode) {
-    audioWorkletNode.disconnect();
-    audioWorkletNode = null;
+      await audioContext.audioWorklet.addModule('processor.js');
+      updateStatus('AudioWorklet ready! Click "Start".', false, true);
+      return true;
+    } catch (err) {
+      updateStatus(`ERROR: ${err.message}`, true);
+      return false;
+    }
   }
 
-  if (audioContext && audioContext.state !== 'closed') {
-    audioContext.close().catch(console.error);
-    audioContext = null;
+  // ========== HELPER: SAFE STATUS UPDATES ==========
+  function updateStatus(message, isError = false, isSuccess = false) {
+    if (!statusEl) return;
+    statusEl.textContent = message;
+    statusEl.className = isError ? 'error' : isSuccess ? 'success' : '';
   }
-}
 
-// ========== EVENT LISTENERS ==========
-startBtn.addEventListener('click', startAudio);
-stopBtn.addEventListener('click', stopAudio);
+  // ========== START/STOP AUDIO ==========
+  async function startAudio() {
+    if (isRunning || !audioContext) return;
 
-// ========== INIT ON LOAD ==========
-window.addEventListener('load', initAudio);
+    isRunning = true;
+    startBtn.disabled = true;
+    stopBtn.disabled = false;
+    updateOutput('Starting audio...');
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const source = audioContext.createMediaStreamSource(stream);
+
+      audioWorkletNode = new AudioWorkletNode(audioContext, 'audio-analyzer-processor', {
+        numberOfInputs: 1,
+        numberOfOutputs: 1,
+        outputChannelCount: [1]
+      });
+
+      source.connect(audioWorkletNode);
+      audioWorkletNode.connect(audioContext.destination);
+
+      audioWorkletNode.port.onmessage = (e) => {
+        updateOutput(JSON.stringify(e.data, null, 2));
+      };
+
+      audioWorkletNode.port.postMessage({ type: 'init', sampleRate: audioContext.sampleRate });
+
+    } catch (err) {
+      updateOutput(`ERROR: ${err.message}`);
+      stopAudio();
+    }
+  }
+
+  function stopAudio() {
+    if (!isRunning) return;
+    isRunning = false;
+
+    startBtn.disabled = false;
+    stopBtn.disabled = true;
+
+    if (audioWorkletNode) {
+      audioWorkletNode.disconnect();
+      audioWorkletNode = null;
+    }
+
+    if (audioContext && audioContext.state !== 'closed') {
+      audioContext.close().catch(console.error);
+      audioContext = null;
+    }
+  }
+
+  // ========== HELPER: SAFE OUTPUT UPDATES ==========
+  function updateOutput(message) {
+    if (!outputEl) return;
+    outputEl.textContent = message;
+  }
+
+  // ========== EVENT LISTENERS ==========
+  startBtn.addEventListener('click', startAudio);
+  stopBtn.addEventListener('click', stopAudio);
+
+  // ========== INIT ON DOM READY ==========
+  initAudio();
+});
