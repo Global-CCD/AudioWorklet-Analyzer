@@ -1,0 +1,122 @@
+:root {
+  --primary: #6c5ce7;
+  --secondary: #a29bfe;
+  --background: #1a1a2e;
+  --text: #e0e0e0;
+  --card-bg: #16213e;
+  --danger: #ff4757;
+  --warning: #ffa502;
+  --success: #2ed573;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: var(--background);
+  color: var(--text);
+  line-height: 1.6;
+  padding: 20px;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+h1, h2, h3 {
+  color: var(--primary);
+  margin-bottom: 15px;
+}
+
+.controls {
+  display: flex;
+  gap: 10px;
+  margin: 20px 0;
+  flex-wrap: wrap;
+}
+
+button {
+  padding: 10px 20px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background 0.3s;
+}
+
+button:hover { background: #5649c0; }
+button:disabled { background: #4a4a6a; cursor: not-allowed; }
+
+select, input {
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid var(--secondary);
+  background: var(--card-bg);
+  color: var(--text);
+  font-size: 16px;
+}
+
+.visualizers {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin: 20px 0;
+}
+
+canvas {
+  background: var(--card-bg);
+  border-radius: 8px;
+  width: 100%;
+  height: auto;
+}
+
+.measurements {
+  margin-top: 30px;
+}
+
+.measurement-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.card {
+  background: var(--card-bg);
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.card h3 {
+  font-size: 14px;
+  margin-bottom: 10px;
+  color: var(--secondary);
+}
+
+.card span {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.detailed-measurements {
+  background: var(--card-bg);
+  padding: 20px;
+  border-radius: 8px;
+}
+
+#jsonOutput {
+  background: #0f1419;
+  padding: 15px;
+  border-radius: 5px;
+  overflow-x: auto;
+  font-size: 12px;
+  color: #a5d6ff;
+}
+
+.danger { color: var(--danger); }
+.warning { color: var(--warning); }
+.success { color: var(--success); }
