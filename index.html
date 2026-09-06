@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AudioWorklet Analyzer</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <h1>🎧 Real-Time Audio Analyzer</h1>
+    <div class="controls">
+      <button id="startBtn">Start</button>
+      <button id="stopBtn" disabled>Stop</button>
+      <select id="audioSource">
+        <option value="mic">Microphone</option>
+        <option value="file">Audio File</option>
+      </select>
+      <input type="file" id="fileInput" accept="audio/*" style="display:none;">
+    </div>
+    <div class="visualizers">
+      <canvas id="waveformCanvas" width="800" height="200"></canvas>
+      <canvas id="spectrumCanvas" width="800" height="200"></canvas>
+      <canvas id="spectrogramCanvas" width="800" height="400"></canvas>
+    </div>
+    <div class="measurements">
+      <div class="measurement-grid">
+        <div class="card"><h3>Peak Level</h3><span id="peakLevel">-∞ dBFS</span></div>
+        <div class="card"><h3>RMS Level</h3><span id="rmsLevel">-∞ dBFS</span></div>
+        <div class="card"><h3>Crest Factor</h3><span id="crestFactor">0</span></div>
+        <div class="card"><h3>Spectral Centroid</h3><span id="spectralCentroid">0 Hz</span></div>
+        <div class="card"><h3>Pitch</h3><span id="pitch">-</span></div>
+        <div class="card"><h3>Loudness</h3><span id="loudness">0 phon</span></div>
+        <div class="card"><h3>Onset Detected</h3><span id="onsetDetected">No</span></div>
+        <div class="card"><h3>Clipping</h3><span id="clipping">No</span></div>
+      </div>
+      <div class="detailed-measurements">
+        <h2>Detailed Measurements</h2>
+        <pre id="jsonOutput">{}</pre>
+      </div>
+    </div>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
